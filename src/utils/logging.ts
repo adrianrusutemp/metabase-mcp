@@ -26,6 +26,7 @@ const SENSITIVE_HEADER_NAMES = new Set([
   'authorization',
   'proxy-authorization',
   'x-metabase-session',
+  'cf-access-client-secret',
   'cookie',
   'set-cookie',
 ]);

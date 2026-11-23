@@ -35,6 +35,19 @@ describe('requestUtils', () => {
         'X-Metabase-Session': 'session-token',
       });
     });
-  });
 
+    it('should include the Cloudflare Access service token when configured', () => {
+      const headers = buildMetabaseHeaders({
+        authMethod: AuthMethod.API_KEY,
+        apiKey: 'metabase-api-key',
+        cfAccess: { clientId: 'id.access', clientSecret: 'cf-secret' },
+      });
+
+      expect(headers).toEqual({
+        'X-API-KEY': 'metabase-api-key',
+        'CF-Access-Client-Id': 'id.access',
+        'CF-Access-Client-Secret': 'cf-secret',
+      });
+    });
+  });
 });

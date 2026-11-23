@@ -1,9 +1,9 @@
 {
   "manifest_version": "0.3",
-  "name": "metabase-mcp",
-  "display_name": "Metabase",
-  "version": "1.1.7",
-  "description": "A high-performance MCP server for Metabase analytics data access with response optimization and robust error handling.",
+  "name": "metabase-mcp-cf-access",
+  "display_name": "Metabase (Cloudflare Access fork)",
+  "version": "1.1.7-cf.1",
+  "description": "A high-performance MCP server for Metabase analytics data access with response optimization and robust error handling. Fork with Cloudflare Access service token support.",
   "long_description": "This MCP server provides AI assistants with optimized access to Metabase analytics data. Features up to 90% token reduction through response optimization, comprehensive error handling with structured responses, and tools for searching, listing, retrieving, and exporting data from Metabase instances. Includes concurrent processing, pagination support, and export capabilities for large datasets. Supports both API key and email/password authentication methods.",
   "author": {
     "name": "Jericho Sequitin",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jerichosequitin/metabase-mcp"
+    "url": "https://github.com/adrianrusutemp/metabase-mcp"
   },
   "icon": "icon.png",
   "server": {
@@ -19,16 +19,17 @@
     "entry_point": "build/src/index.js",
     "mcp_config": {
       "command": "node",
-      "args": [
-        "${__dirname}/build/src/index.js"
-      ],
+      "args": ["${__dirname}/build/src/index.js"],
       "env": {
         "METABASE_URL": "${user_config.metabase_url}",
         "METABASE_API_KEY": "${user_config.metabase_api_key}",
         "METABASE_USER_EMAIL": "${user_config.metabase_user_email}",
         "METABASE_PASSWORD": "${user_config.metabase_password}",
         "EXPORT_DIRECTORY": "${user_config.export_directory}",
-        "METABASE_READ_ONLY_MODE": "${user_config.read_only_mode}"
+        "METABASE_READ_ONLY_MODE": "${user_config.read_only_mode}",
+        "CF_ACCESS_TOKEN_FILE": "${user_config.cf_access_token_file}",
+        "CF_ACCESS_CLIENT_ID": "${user_config.cf_access_client_id}",
+        "CF_ACCESS_CLIENT_SECRET": "${user_config.cf_access_client_secret}"
       }
     }
   },
@@ -98,6 +99,28 @@
       "type": "string",
       "title": "Password",
       "description": "Metabase User Password. Leave empty for API key authentication.",
+      "required": false,
+      "sensitive": true,
+      "default": ""
+    },
+    "cf_access_token_file": {
+      "type": "file",
+      "title": "Cloudflare Access token file",
+      "description": "Optional. KEY=VALUE file with CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET, for a Metabase behind Cloudflare Access. Keeps the secret out of this form.",
+      "required": false,
+      "default": ""
+    },
+    "cf_access_client_id": {
+      "type": "string",
+      "title": "Cloudflare Access Client ID",
+      "description": "Optional. Service token Client ID (instead of the token file).",
+      "required": false,
+      "default": ""
+    },
+    "cf_access_client_secret": {
+      "type": "string",
+      "title": "Cloudflare Access Client Secret",
+      "description": "Optional. Service token Client Secret (instead of the token file).",
       "required": false,
       "sensitive": true,
       "default": ""

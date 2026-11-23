@@ -4,6 +4,7 @@
 
 import 'dotenv/config';
 import { z } from 'zod';
+import { readFileSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 
@@ -34,6 +35,9 @@ const envSchema = z
     METABASE_URL: z.string().url('METABASE_URL must be a valid URL'),
     METABASE_API_KEY: z.string().optional(),
     METABASE_PROXY_AUTHORIZATION: z.string().optional(),
+    CF_ACCESS_CLIENT_ID: z.string().optional(),
+    CF_ACCESS_CLIENT_SECRET: z.string().optional(),
+    CF_ACCESS_TOKEN_FILE: z.string().optional(),
     METABASE_USER_EMAIL: z.string().email().optional(),
     METABASE_PASSWORD: z.string().min(1).optional(),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -79,6 +83,9 @@ function createTestConfig() {
     METABASE_URL: 'http://localhost:3000',
     METABASE_API_KEY: 'test-api-key',
     METABASE_PROXY_AUTHORIZATION: undefined,
+    CF_ACCESS_CLIENT_ID: undefined,
+    CF_ACCESS_CLIENT_SECRET: undefined,
+    CF_ACCESS_TOKEN_FILE: undefined,
     METABASE_USER_EMAIL: undefined,
     METABASE_PASSWORD: undefined,
     NODE_ENV: 'test' as const,
@@ -115,5 +122,48 @@ export enum LogLevel {
 export const authMethod: AuthMethod = config.METABASE_API_KEY
   ? AuthMethod.API_KEY
   : AuthMethod.SESSION;
+
+/**
+ * Cloudflare Access service token (Metabase behind Cloudflare Zero Trust), or null when not configured.
+ * CF_ACCESS_CLIENT_ID / CF_ACCESS_CLIENT_SECRET win over the same keys read from CF_ACCESS_TOKEN_FILE,
+ * a KEY=VALUE file that keeps the secret out of the MCP client's configuration.
+ */
+export function resolveCfAccess(env: {
+  CF_ACCESS_CLIENT_ID?: string;
+  CF_ACCESS_CLIENT_SECRET?: string;
+  CF_ACCESS_TOKEN_FILE?: string;
+}): { clientId: string; clientSecret: string } | null {
+  const fromFile: Record<string, string> = {};
+  if (env.CF_ACCESS_TOKEN_FILE) {
+    const path = expandSystemVariables(env.CF_ACCESS_TOKEN_FILE);
+    let text: string;
+    try {
+      text = readFileSync(path, 'utf8');
+    } catch (error) {
+      throw new Error(
+        `CF_ACCESS_TOKEN_FILE could not be read: ${path} (${(error as Error).message})`
+      );
+    }
+    for (const line of text.split(/\r?\n/)) {
+      const match = line.match(/^\s*(CF_ACCESS_CLIENT_ID|CF_ACCESS_CLIENT_SECRET)\s*=\s*(.*?)\s*$/);
+      if (match) {
+        fromFile[match[1]] = match[2].replace(/^(['"])(.*)\1$/, '$2');
+      }
+    }
+  }
+  const clientId = env.CF_ACCESS_CLIENT_ID || fromFile.CF_ACCESS_CLIENT_ID;
+  const clientSecret = env.CF_ACCESS_CLIENT_SECRET || fromFile.CF_ACCESS_CLIENT_SECRET;
+  if (!clientId && !clientSecret) {
+    return null;
+  }
+  if (!clientId || !clientSecret) {
+    throw new Error(
+      'Cloudflare Access needs both CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET (directly or in CF_ACCESS_TOKEN_FILE)'
+    );
+  }
+  return { clientId, clientSecret };
+}
+
+export const cfAccess = resolveCfAccess(config);
 
 export default config;

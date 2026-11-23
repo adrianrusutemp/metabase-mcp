@@ -1,4 +1,4 @@
-import { config, AuthMethod, LogLevel } from './config.js';
+import { config, AuthMethod, LogLevel, cfAccess } from './config.js';
 import { ErrorCode, McpError, isMcpError } from './types/core.js';
 import { NetworkErrorFactory, createErrorFromHttpResponse } from './utils/errorFactory.js';
 import { isLogLevelEnabled, maskHttpHeadersForLog } from './utils/logging.js';
@@ -150,6 +150,7 @@ export class MetabaseApiClient {
       apiKey: this.apiKey,
       sessionToken: this.sessionToken,
       proxyAuthorization: config.METABASE_PROXY_AUTHORIZATION,
+      cfAccess,
     });
 
     this.logDebug(`Making request to ${url.toString()}`);

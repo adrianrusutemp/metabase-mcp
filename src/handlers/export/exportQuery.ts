@@ -7,7 +7,7 @@ import {
   formatJson,
   buildMetabaseHeaders,
 } from '../../utils/index.js';
-import { config, authMethod } from '../../config.js';
+import { config, authMethod, cfAccess } from '../../config.js';
 import * as XLSX from 'xlsx';
 import { SqlExportParams, ExportResponse } from './types.js';
 import * as fs from 'fs';
@@ -131,6 +131,7 @@ export async function exportSqlQuery(
       apiKey: config.METABASE_API_KEY,
       sessionToken: apiClient.sessionToken,
       proxyAuthorization: config.METABASE_PROXY_AUTHORIZATION,
+      cfAccess,
     });
 
     const response = await fetch(url.toString(), {

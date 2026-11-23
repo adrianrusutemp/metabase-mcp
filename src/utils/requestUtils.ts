@@ -17,6 +17,7 @@ interface MetabaseHeaderOptions {
   apiKey?: string | null;
   sessionToken?: string | null;
   proxyAuthorization?: string | null;
+  cfAccess?: { clientId: string; clientSecret: string } | null;
 }
 
 export function buildMetabaseHeaders(options: MetabaseHeaderOptions): Record<string, string> {
@@ -24,6 +25,12 @@ export function buildMetabaseHeaders(options: MetabaseHeaderOptions): Record<str
 
   if (options.proxyAuthorization) {
     headers['Proxy-Authorization'] = options.proxyAuthorization;
+  }
+
+  // Cloudflare Access service token, for a Metabase behind Cloudflare Zero Trust.
+  if (options.cfAccess) {
+    headers['CF-Access-Client-Id'] = options.cfAccess.clientId;
+    headers['CF-Access-Client-Secret'] = options.cfAccess.clientSecret;
   }
 
   if (options.authMethod === AuthMethod.API_KEY && options.apiKey) {

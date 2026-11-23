@@ -11,6 +11,8 @@ describe('logging utilities', () => {
       Authorization: 'Bearer token',
       'Proxy-Authorization': 'Bearer iap-token',
       Cookie: 'sid=secret',
+      'CF-Access-Client-Id': 'id.access',
+      'CF-Access-Client-Secret': 'cf-secret',
     };
 
     const maskedHeaders = maskHttpHeadersForLog(headers);
@@ -22,6 +24,8 @@ describe('logging utilities', () => {
       Authorization: '***',
       'Proxy-Authorization': '***',
       Cookie: '***',
+      'CF-Access-Client-Id': 'id.access',
+      'CF-Access-Client-Secret': '***',
     });
     expect(headers['X-API-KEY']).toBe('secret-key');
   });
